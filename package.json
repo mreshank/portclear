@@ -1,55 +1,64 @@
 {
-  "name": "port-clear",
-  "version": "0.0.1",
-  "description": "Kill process running on any given port. Zero dependencies, cross-platform support for Windows, macOS, Linux & Unix.",
-  "main": "index.js",
-  "bin": {
-    "port-clear": "cli.js",
-    "portkill": "cli.js",
-    "pkill-port": "cli.js",
-    "port-stop": "cli.js",
-    "port-nuke": "cli.js",
-    "port-eject": "cli.js"
-  },
-  "scripts": {
-    "test": "node test/test.js",
-    "publish": "node publish-all"
-  },
-  "keywords": [
-    "port",
-    "kill",
-    "process",
-    "port-clear",
-    "portkill",
-    "kill-port",
-    "port-kill",
-    "killport",
-    "cross-platform",
-    "windows",
-    "mac",
-    "linux",
-    "unix",
-    "tcp",
-    "udp",
-    "zero-dependency"
-  ],
-  "author": "Reshank M",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/mreshank/port-clear.git"
-  },
-  "bugs": {
-    "url": "https://github.com/mreshank/port-clear/issues"
-  },
-  "homepage": "https://github.com/mreshank/port-clear#readme",
-  "engines": {
-    "node": ">=14.0.0"
-  },
-  "files": [
-    "index.js",
-    "cli.js",
-    "README.md",
-    "LICENSE"
-  ]
+    "name": "portkill",
+    "version": "1.0.0",
+    "description": "Kill process running on any given port. Works with Node.js, Python, Go, Java, and any language. Zero dependencies, cross-platform support for Windows, macOS, Linux & Unix.",
+    "main": "index.js",
+    "types": "index.d.ts",
+    "bin": {
+        "portkill": "cli.js",
+        "port-clear": "cli.js",
+        "pkill-port": "cli.js",
+        "port-stop": "cli.js",
+        "port-nuke": "cli.js",
+        "port-eject": "cli.js"
+    },
+    "scripts": {
+        "test": "node test/test.js",
+        "publish": "node publish-all"
+    },
+    "keywords": [
+        "port",
+        "kill",
+        "process",
+        "portkill",
+        "port-clear",
+        "kill-port",
+        "port-kill",
+        "killport",
+        "cross-platform",
+        "windows",
+        "mac",
+        "linux",
+        "unix",
+        "tcp",
+        "udp",
+        "zero-dependency",
+        "port-range",
+        "typescript",
+        "python",
+        "node",
+        "go",
+        "java",
+        "universal"
+    ],
+    "author": "Reshank M",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/mreshank/portkill.git"
+    },
+    "bugs": {
+        "url": "https://github.com/mreshank/portkill/issues"
+    },
+    "homepage": "https://github.com/mreshank/portkill#readme",
+    "engines": {
+        "node": ">=14.0.0"
+    },
+    "files": [
+        "index.js",
+        "index.d.ts",
+        "cli.js",
+        "README.md",
+        "LICENSE"
+    ]
 }

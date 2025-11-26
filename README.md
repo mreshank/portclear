@@ -10,10 +10,13 @@
 ## Why port-clear?
 
 ✅ **Zero dependencies** - Only uses Node.js built-in modules  
-✅ **Smallest package** - ~2-3 kB (vs competitors at 174 kB)  
+✅ **Smallest package** - ~8 kB packed (vs competitors at 60-174 kB)  
 ✅ **Cross-platform** - Windows, macOS, Linux, Unix support  
+✅ **Port ranges** - Kill ports 3000-3010 in one command ⭐ NEW  
+✅ **Preview mode** - List processes before killing ⭐ NEW  
+✅ **TypeScript support** - Full type definitions included ⭐ NEW  
 ✅ **Multiple aliases** - Available as `port-clear`, `portkill`, `pkill-port`, etc.  
-✅ **Flexible CLI** - Supports both positional and flag-based arguments  
+✅ **Flexible CLI** - Positional, flag-based, and range syntax  
 ✅ **Promise-based API** - Clean programmatic usage  
 
 ## Installation
@@ -42,6 +45,22 @@ npx port-eject <port>
 npm install port-clear
 ```
 
+## Quick Start
+
+```bash
+# Kill process on port
+npx port-clear 3000
+
+# Kill port range
+npx port-clear 3000-3010
+
+# List processes (preview mode)
+npx port-clear -l 3000
+
+# Quiet mode for scripts
+npx port-clear -q 3000
+```
+
 ## Usage
 
 ### CLI Usage
@@ -51,51 +70,135 @@ npm install port-clear
 npx port-clear 3000
 ```
 
+**Port ranges:**
+```bash
+# Range syntax
+npx port-clear 3000-3010
+
+# Flag syntax
+npx port-clear --from 3000 --to 3010
+```
+
 **Multiple ports:**
 ```bash
+# Space-separated
 npx port-clear 3000 8080 9000
+
+# Comma-separated
+npx port-clear 3000,8080,9000
 ```
 
-**Flag-based syntax:**
+**List/Preview mode:**
 ```bash
-npx port-clear -p 3000
-npx port-clear -p 3000,8080,9000
+# See what's running without killing
+npx port-clear -l 3000
+
+# List range of ports
+npx port-clear --list 3000-3010
+
+# With verbose output
+npx port-clear -l 3000 -v
 ```
 
-**Verbose output:**
+**Quiet mode:**
 ```bash
-npx port-clear -p 3000 -v
+# Perfect for CI/CD scripts
+npx port-clear -q 3000
+
+# Only shows errors, exits with proper codes
+if npx port-clear -q 3000; then
+  echo "Port cleared successfully"
+fi
 ```
 
-**Kill UDP process:**
+**JSON output:**
 ```bash
+# Machine-readable output
+npx port-clear --json 3000
+
+# Combine with list mode
+npx port-clear -l --json 3000-3010
+```
+
+**Advanced options:**
+```bash
+# Kill UDP process
 npx port-clear -p 3000 -m udp
-```
 
-**Using aliases:**
-```bash
-npx portkill 3000
-npx port-stop 8080
-npx port-nuke 9000
+# Verbose output with process details
+npx port-clear -p 3000 -v
+
+# Kill process tree (including children)
+npx port-clear --tree 3000
 ```
 
 ### Programmatic Usage
 
+**Basic:**
 ```javascript
 const portClear = require('port-clear');
 
 // Kill process on port 3000
 await portClear(3000);
+```
 
-// Kill UDP process on port 3000
+**With options:**
+```javascript
+// New options object API (v1.0+)
+await portClear(3000, {
+  method: 'udp',    // 'tcp' or 'udp'
+  list: true,       // Preview mode
+  tree: false       // Kill process tree
+});
+
+// Backward compatible (still works)
 await portClear(3000, 'udp');
+```
 
-// With error handling
+**TypeScript:**
+```typescript
+import portClear, { PortClearOptions, PortClearResult } from 'port-clear';
+
+// Full type safety
+const result: PortClearResult = await portClear(3000, {
+  method: 'tcp',
+  list: true
+});
+
+if (result.pid) {
+  console.log(`Process ${result.name} (PID: ${result.pid}) on port ${result.port}`);
+}
+```
+
+**Error handling:**
+```javascript
 try {
   await portClear(3000);
   console.log('Port 3000 cleared successfully');
 } catch (error) {
-  console.error('Failed to clear port:', error.message);
+  if (error.message.includes('Permission denied')) {
+    console.log('Run with sudo or as Administrator');
+  } else if (error.message.includes('No process running')) {
+    console.log('Port is already free');
+  } else {
+    console.error('Unexpected error:', error.message);
+  }
+}
+```
+
+**Preview before killing:**
+```javascript
+// List what's running first
+const preview = await portClear(3000, { list: true });
+
+if (!preview.error) {
+  console.log(`Found ${preview.name} (PID: ${preview.pid})`);
+  
+  // Confirm and kill
+  const confirmed = await askUser('Kill this process?');
+  if (confirmed) {
+    await portClear(3000);
+  }
 }
 ```
 
@@ -103,104 +206,226 @@ try {
 
 | Option | Alias | Description | Default |
 |--------|-------|-------------|---------|
-| `--port <port>` | `-p` | Port number(s) to kill (supports comma-separated) | - |
-| `--method <method>` | `-m` | Protocol method: `tcp` or `udp` | `tcp` |
-| `--verbose` | `-v` | Show detailed output | `false` |
+| `--port <port>` | `-p` | Port number(s) - supports ranges and comma-separated | - |
+| `--list` | `-l` | List processes without killing (preview mode) | `false` |
+| `--method <method>` | `-m` | Protocol: `tcp` or `udp` | `tcp` |
+| `--verbose` | `-v` | Show detailed output with PIDs and process names | `false` |
+| `--quiet` | `-q` | Quiet mode - only show errors | `false` |
+| `--json` | - | Output results as JSON | `false` |
+| `--tree` | - | Kill process tree (including children) | `false` |
+| `--from <port>` | - | Start of port range | - |
+| `--to <port>` | - | End of port range | - |
 | `--help` | `-h` | Show help message | - |
 
 ## API
 
-### `portClear(port, method)`
+### `portClear(port, methodOrOptions)`
 
 Kill process running on specified port.
 
 **Parameters:**
 - `port` (number|string) - Port number to kill (1-65535)
-- `method` (string) - Protocol method: `'tcp'` or `'udp'` (default: `'tcp'`)
+- `methodOrOptions` (string|object) - Either:
+  - String: `'tcp'` or `'udp'` (backward compatible)
+  - Object: Options object (v1.0+)
+    - `method?: 'tcp' | 'udp'` - Protocol (default: `'tcp'`)
+    - `list?: boolean` - Preview mode (default: `false`)
+    - `tree?: boolean` - Kill process tree (default: `false`)
 
 **Returns:**
-- `Promise<object>` - Result object containing:
-  - `stdout` - Command output
-  - `stderr` - Command errors
-  - `port` - Port number
-  - `platform` - Operating system platform
-  - `pids` (Windows only) - Array of killed process IDs
+- `Promise<PortClearResult>` - Result object containing:
+  - `port: number` - Port number
+  - `killed: boolean` - Whether process was killed
+  - `platform: string` - OS platform
+  - `pid?: number` - Process ID (single process)
+  - `pids?: number[]` - Process IDs (multiple processes)
+  - `name?: string` - Process name
+  - `error?: string` - Error message if failed
+  - `stdout?: string` - Command output
+  - `stderr?: string` - Command errors
+  - `listing?: boolean` - Whether this is list mode
 
 **Throws:**
 - `Error` - If port is invalid, no process is running, or kill operation fails
 
-## Platform Support
+## Advanced Usage
 
-| Platform | Supported | Command Used |
-|----------|-----------|--------------|
-| Windows | ✅ | `netstat -ano` + `taskkill` |
-| macOS | ✅ | `lsof` + `kill` |
-| Linux | ✅ | `lsof` + `kill` |
-| Unix | ✅ | `lsof` + `kill` |
+### Port Ranges in Scripts
 
-## Comparison with Alternatives
+```javascript
+// Kill all dev server ports
+const portRange = Array.from({ length: 11 }, (_, i) => 3000 + i);
 
-| Package | Size (Unpacked) | Dependencies | Cross-Platform |
-|---------|-----------------|--------------|----------------|
-| **port-clear** | **~2-3 kB** | **0** | **✅** |
-| kill-port | 174.6 kB | 2 | ✅ |
-| killport | 2.3 kB | 2 | ❌ (Unix only) |
-| port-kill | ~100 kB | 0 | ✅ |
-
-## Examples
-
-### Kill development server port
-```bash
-npx port-clear 3000
+for (const port of portRange) {
+  try {
+    await portClear(port, { quiet: true });
+  } catch (error) {
+    // Ignore errors (port might not be in use)
+  }
+}
 ```
 
-### Free multiple ports at once
-```bash
-npx port-clear 3000 8080 8081 9000
+### Pre-deployment Cleanup
+
+```javascript
+// Clean up before starting services
+const portsToClean = [3000, 8080, 8081, 9000];
+
+console.log('Cleaning up ports...');
+await Promise.all(
+  portsToClean.map(port => 
+    portClear(port).catch(() => {}) // Ignore errors
+  )
+);
+console.log('Ports cleared, starting services...');
 ```
 
-### Kill process with verbose logging
-```bash
-npx port-clear -p 3000 -v
+### CI/CD Integration
+
+```yaml
+# .github/workflows/test.yml
+- name: Clear ports before tests
+  run: npx port-clear -q 3000 8080 || true
+
+- name: Run tests
+  run: npm test
 ```
 
-### Use in package.json scripts
+### Development Tools Integration
+
 ```json
 {
   "scripts": {
-    "clear-port": "port-clear 3000",
-    "dev": "port-clear 3000 && npm run start"
+    "predev": "port-clear -q 3000",
+    "dev": "next dev",
+    "clean-ports": "port-clear 3000-3010",
+    "kill-all": "port-clear 3000,8080,8081,9000"
   }
 }
 ```
 
-### Integration in Node.js apps
+## Platform Support
+
+| Platform | Supported | Commands Used |
+|----------|-----------|---------------|
+| Windows | ✅ | `netstat -ano`, `taskkill` |
+| macOS | ✅ | `lsof`, `kill`, `ps` |
+| Linux | ✅ | `lsof`, `kill`, `ps` |
+| Unix | ✅ | `lsof`, `kill`, `ps` |
+
+## Comparison with Alternatives
+
+| Feature | port-clear | kill-port | killport | port-kill |
+|---------|-----------|-----------|----------|-----------|
+| **Size (packed)** | **~8 kB** | ~60 kB | ~1.5 kB | ~35 kB |
+| **Dependencies** | **0** | 2 | 2 | 0 |
+| **Port Ranges** | **✅** | ❌ | ❌ | ❌ |
+| **Preview Mode** | **✅** | ❌ | ❌ | ✅ |
+| **TypeScript** | **✅** | ⚠️ (@types) | ❌ | ❌ |
+| **JSON Output** | **✅** | ❌ | ❌ | ❌ |
+| **Process Tree** | **✅** | ❌ | ❌ | ✅ |
+| **Quiet Mode** | **✅** | ❌ | ❌ | ❌ |
+| **Cross-Platform** | ✅ | ✅ | ❌ (Unix only) | ✅ |
+| **Active Maintenance** | ✅ | ⚠️ | ❌ | ⚠️ |
+
+## Troubleshooting
+
+### Permission Denied
+
+**Error:** `Permission denied for port 3000`
+
+**Solution:**
+```bash
+# macOS/Linux
+sudo npx port-clear 3000
+
+# Windows (Run terminal as Administrator)
+npx port-clear 3000
+```
+
+### Port Still in Use After Killing
+
+Some applications may take time to release ports. Wait a few seconds and verify:
+
+```bash
+# List to check if process is gone
+npx port-clear -l 3000
+
+# Force kill with tree option
+npx port-clear --tree 3000
+```
+
+### Finding What's Using a Port
+
+Use list mode to see details:
+
+```bash
+# Basic info
+npx port-clear -l 3000
+
+# Verbose with all details
+npx port-clear -l 3000 -v
+
+# JSON for scripting
+npx port-clear -l --json 3000
+```
+
+## Examples
+
+### Free Up Development Ports
+
+```bash
+# Kill all common dev ports
+npx port-clear 3000 3001 5000 8000 8080
+
+# Or use ranges
+npx port-clear 3000-3005 8000-8005
+```
+
+### Clean Up Docker Ports
+
+```bash
+# Kill common Docker ports
+npx port-clear 2375 2376 5000 8000-8100
+```
+
+### Integration in Node.js Apps
+
 ```javascript
 const portClear = require('port-clear');
+const express = require('express');
 
-async function startServer(port) {
+async function startServer(port = 3000) {
   try {
-    // Clear port before starting server
-    await portClear(port);
-    console.log(`Port ${port} is now available`);
+    // Clear port before starting
+    await portClear(port, { quiet: true });
     
-    // Start your server
-    app.listen(port);
+    const app = express();
+    app.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+    });
   } catch (error) {
-    console.error('Could not clear port:', error.message);
+    console.error('Could not start server:', error.message);
+    process.exit(1);
   }
 }
 
-startServer(3000);
+startServer();
 ```
 
-## Error Handling
+### Package.json Scripts
 
-The package provides clear error messages for common issues:
-
-- **Invalid port**: Port must be between 1 and 65535
-- **No process running**: No process found on specified port
-- **Permission denied**: Requires elevated privileges (run with sudo on Unix/Mac, or as Administrator on Windows)
+```json
+{
+  "scripts": {
+    "clean": "port-clear -q 3000 8080",
+    "prestart": "npm run clean",
+    "start": "node server.js",
+    "dev": "port-clear -q 3000 && nodemon server.js",
+    "kill-all": "port-clear 3000-9000"
+  }
+}
+```
 
 ## Requirements
 
@@ -214,6 +439,12 @@ MIT © [Reshank M](https://github.com/mreshank)
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -am 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
 ## Issues
 
 If you encounter any problems, please [open an issue](https://github.com/mreshank/port-clear/issues) on GitHub.
@@ -223,10 +454,17 @@ If you encounter any problems, please [open an issue](https://github.com/mreshan
 This package is available under multiple names for convenience:
 
 - [port-clear](https://www.npmjs.com/package/port-clear) (main)
-- [portkill](https://www.npmjs.com/package/portkill)
 - [pkill-port](https://www.npmjs.com/package/pkill-port)
 - [port-stop](https://www.npmjs.com/package/port-stop)
 - [port-nuke](https://www.npmjs.com/package/port-nuke)
 - [port-eject](https://www.npmjs.com/package/port-eject)
 
 All aliases provide the exact same functionality.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a detailed list of changes.
+
+---
+
+Made with ❤️ by developers, for developers.
