@@ -2,7 +2,7 @@
 'use strict';
 
 /**
- * Helper script to publish port-clear under multiple package names
+ * Helper script to publish portkill under multiple package names
  * Usage: node publish-all.js
  */
 

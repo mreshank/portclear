@@ -56,7 +56,7 @@ async function portClear(port, methodOrOptions = {}) {
     if (error.code === 'EACCES' || error.code === 'EPERM' || error.message.includes('Operation not permitted')) {
       const suggestion = platform === 'win32' 
         ? 'Try running as Administrator'
-        : 'Try running with sudo: sudo npx port-clear ' + port;
+        : 'Try running with sudo: sudo npx portkill ' + port;
       throw new Error(`Permission denied for port ${port}. ${suggestion}`);
     }
     throw new Error(`Failed to kill process on port ${port}: ${error.message}`);

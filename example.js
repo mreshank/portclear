@@ -2,14 +2,14 @@
 'use strict';
 
 /**
- * Example usage of port-clear package
+ * Example usage of portkill package
  * Run: node example.js
  */
 
 const portClear = require('./index.js');
 
 async function examples() {
-  console.log('port-clear - Usage Examples\n');
+  console.log('portkill - Usage Examples\n');
 
   // Example 1: Kill process on port 3000
   console.log('Example 1: Kill process on port 3000');

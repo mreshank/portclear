@@ -1,7 +1,7 @@
-// TypeScript definitions for port-clear
+// TypeScript definitions for portkill
 
 /**
- * Options for port-clear function
+ * Options for portkill function
  */
 export interface PortClearOptions {
   /**
@@ -24,7 +24,7 @@ export interface PortClearOptions {
 }
 
 /**
- * Result returned from port-clear function
+ * Result returned from portkill function
  */
 export interface PortClearResult {
   /**

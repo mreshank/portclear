@@ -1,6 +1,6 @@
 {
     "name": "portkill",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "description": "Kill process running on any given port. Works with Node.js, Python, Go, Java, and any language. Zero dependencies, cross-platform support for Windows, macOS, Linux & Unix.",
     "main": "index.js",
     "types": "index.d.ts",
