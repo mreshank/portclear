@@ -1,6 +1,6 @@
 {
   "name": "portclear",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Kill process running on any given port. Works with Node.js, Python, Go, Java, and any language. Zero dependencies, cross-platform support for Windows, macOS, Linux & Unix.",
   "main": "index.js",
   "types": "index.d.ts",
