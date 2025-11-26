@@ -1,6 +1,6 @@
 {
-  "name": "portclear",
-  "version": "0.1.3",
+  "name": "portkill",
+  "version": "0.1.5",
   "description": "Kill process running on any given port. Works with Node.js, Python, Go, Java, and any language. Zero dependencies, cross-platform support for Windows, macOS, Linux & Unix.",
   "main": "index.js",
   "types": "index.d.ts",
@@ -9,7 +9,7 @@
     "port-clear": "cli.js",
     "portkill": "cli.js",
     "pkill-port": "cli.js",
-    "port-stop": "cli.js",
+    "portstop": "cli.js",
     "port-nuke": "cli.js",
     "port-eject": "cli.js"
   },
@@ -47,12 +47,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mreshank/portclear.git"
+    "url": "https://github.com/mreshank/port-clear.git"
   },
   "bugs": {
-    "url": "https://github.com/mreshank/portclear/issues"
+    "url": "https://github.com/mreshank/port-clear/issues"
   },
-  "homepage": "https://github.com/mreshank/portclear#readme",
+  "homepage": "https://github.com/mreshank/port-clear#readme",
   "engines": {
     "node": ">=14.0.0"
   },

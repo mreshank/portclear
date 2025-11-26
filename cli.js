@@ -149,7 +149,7 @@ ${colorize('ALIASES:', 'yellow')}
   npx port-clear <port>
   npx portkill <port>
   npx pkill-port <port>
-  npx port-stop <port>
+  npx portstop <port>
   npx port-nuke <port>
   npx port-eject <port>
 

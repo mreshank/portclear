@@ -15,7 +15,7 @@ const PACKAGE_ALIASES = [
   'port-clear',
   'portkill',
   'pkill-port',
-  'port-stop',
+  'portstop',
   'port-nuke',
   'port-eject'
 ];

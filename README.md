@@ -50,7 +50,7 @@ portclear doesn't care what language your process is written in. It finds what's
 npx portclear <port>
 npx port-clear <port>
 npx pkill-port <port>
-npx port-stop <port>
+npx portstop <port>
 npx port-nuke <port>
 npx port-eject <port>
 ```
@@ -470,7 +470,7 @@ This package is available under multiple names for convenience:
 - [portclear](https://www.npmjs.com/package/portclear) (main)
 - [port-clear](https://www.npmjs.com/package/port-clear)
 - [pkill-port](https://www.npmjs.com/package/pkill-port)
-- [port-stop](https://www.npmjs.com/package/port-stop)
+- [portstop](https://www.npmjs.com/package/portstop)
 - [port-nuke](https://www.npmjs.com/package/port-nuke)
 - [port-eject](https://www.npmjs.com/package/port-eject)
 
