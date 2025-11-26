@@ -6,61 +6,78 @@ const { promisify } = require('util');
 const execAsync = promisify(exec);
 
 /**
- * Kill process running on specified port
- * @param {number|string} port - Port number to kill
- * @param {string|object} methodOrOptions - Protocol method ('tcp'/'udp') or options object
- * @returns {Promise<object>} Result object with stdout, stderr, port, and metadata
+ * Kill process on specified port
+ * @param {number|string} port - Port number
+ * @param {string|object} methodOrOptions - Method ('tcp'/'udp') or options object
+ * @returns {Promise<object>} Result object
  */
-async function portClear(port, methodOrOptions = {}) {
-  // Handle backward compatibility: portClear(3000, 'tcp')
-  let options = {};
-  if (typeof methodOrOptions === 'string') {
-    options = { method: methodOrOptions };
-  } else if (typeof methodOrOptions === 'object') {
-    options = methodOrOptions;
-  }
+async function portClear(port, methodOrOptions = 'tcp') {
+  // Parse arguments (backward compatible)
+  const options = typeof methodOrOptions === 'string'
+    ? { method: methodOrOptions }
+    : { method: 'tcp', ...methodOrOptions };
 
-  // Set defaults
-  const {
-    method = 'tcp',
-    list = false,
-    tree = false
-  } = options;
+  const { method = 'tcp', list = false, tree = false, strict = false } = options;
 
-  // Validate port
-  port = parseInt(port, 10);
-  
-  if (!port || isNaN(port) || port < 1 || port > 65535) {
+  // Validate inputs
+  const portNum = parseInt(port, 10);
+  if (isNaN(portNum) || portNum < 1 || portNum > 65535) {
     throw new Error(`Invalid port number: ${port}. Port must be between 1 and 65535.`);
   }
 
-  // Validate method
-  const normalizedMethod = method.toLowerCase();
-  if (normalizedMethod !== 'tcp' && normalizedMethod !== 'udp') {
-    throw new Error(`Invalid method: ${method}. Method must be 'tcp' or 'udp'.`);
+  if (!['tcp', 'udp'].includes(method)) {
+    throw new Error(`Invalid method: ${method}. Use 'tcp' or 'udp'.`);
   }
 
   const platform = process.platform;
 
   try {
+    let result;
     if (platform === 'win32') {
-      return await (list ? listPortWindows : killPortWindows)(port, normalizedMethod, tree);
+      result = list ? await listPortWindows(portNum, method) : await killPortWindows(portNum, method, tree);
     } else {
-      return await (list ? listPortUnix : killPortUnix)(port, normalizedMethod, tree);
+      result = list ? await listPortUnix(portNum, method) : await killPortUnix(portNum, method, tree);
     }
+    return result;
   } catch (error) {
-    // Re-throw with more context
-    if (error.message.includes('No process running')) {
-      throw error;
+    // Check if error is "no process found"
+    const isNoProcess = error.message && (
+      error.message.includes('No process running') ||
+      error.message.includes('No process found') ||
+      error.message.includes('not listening')
+    );
+
+    // If no process and not in strict mode, return success (port is free!)
+    if (isNoProcess && !strict) {
+      return createResult(portNum, false, platform, {
+        message: list ? 'No process running on port' : 'Port already free',
+        alreadyFree: true
+      });
     }
+
+    // Permission errors
     if (error.code === 'EACCES' || error.code === 'EPERM' || error.message.includes('Operation not permitted')) {
       const suggestion = platform === 'win32' 
         ? 'Try running as Administrator'
         : 'Try running with sudo: sudo npx portclear ' + port;
       throw new Error(`Permission denied for port ${port}. ${suggestion}`);
     }
+    
+    // In strict mode or other errors, throw
     throw new Error(`Failed to kill process on port ${port}: ${error.message}`);
   }
+}
+
+/**
+ * Helper to create standardized result object
+ */
+function createResult(port, killed, platform, data = {}) {
+  return {
+    port: parseInt(port, 10),
+    killed,
+    platform,
+    ...data
+  };
 }
 
 /**
@@ -71,20 +88,25 @@ async function listPortWindows(port, method) {
   const { stdout: netstatOutput } = await execAsync(findCommand);
 
   if (!netstatOutput) {
-    return createResult(port, false, null, 'No process running on port');
+    throw new Error(`No process running on port ${port}`);
   }
 
   const lines = netstatOutput.split('\n');
   const protocol = method.toUpperCase();
-  const portRegex = new RegExp(`^\\s*${protocol}\\s+[^:]*:${port}\\s`, 'gm');
+  const portRegex = new RegExp(`^\\s*${protocol}\\s+[^:]*:${port}\\s`);
   const matchingLines = lines.filter(line => portRegex.test(line));
 
   if (matchingLines.length === 0) {
-    return createResult(port, false, null, 'No process running on port');
+    throw new Error(`No process running on port ${port}`);
   }
 
   const pids = extractPidsWindows(matchingLines);
-  return createResult(port, false, pids, null, 'win32', null, true);
+  
+  if (pids.length === 0) {
+    throw new Error(`No process running on port ${port}`);
+  }
+
+  return createResult(port, false, 'win32', { pids, pid: pids[0], listing: true });
 }
 
 /**
@@ -96,7 +118,7 @@ async function listPortUnix(port, method) {
     const lines = stdout.split('\n').filter(l => l.trim());
     
     if (lines.length <= 1) {
-      return createResult(port, false, null, 'No process running on port');
+      throw new Error(`No process running on port ${port}`);
     }
 
     // Parse lsof output to get process info
@@ -105,9 +127,14 @@ async function listPortUnix(port, method) {
     const name = parts[0];
     const pid = parseInt(parts[1], 10);
 
-    return createResult(port, false, [pid], null, process.platform, name, true);
+    return createResult(port, false, process.platform, { 
+      pids: [pid], 
+      pid,
+      name,
+      listing: true 
+    });
   } catch (error) {
-    return createResult(port, false, null, 'No process running on port');
+    throw new Error(`No process running on port ${port}`);
   }
 }
 
@@ -124,7 +151,7 @@ async function killPortWindows(port, method, tree) {
 
   const lines = netstatOutput.split('\n');
   const protocol = method.toUpperCase();
-  const portRegex = new RegExp(`^\\s*${protocol}\\s+[^:]*:${port}\\s`, 'gm');
+  const portRegex = new RegExp(`^\\s*${protocol}\\s+[^:]*:${port}\\s`);
   const matchingLines = lines.filter(line => portRegex.test(line));
 
   if (matchingLines.length === 0) {
@@ -144,7 +171,12 @@ async function killPortWindows(port, method, tree) {
   
   const result = await execAsync(killCommand);
 
-  return createResult(port, true, pids, null, 'win32', null, false, result.stdout, result.stderr);
+  return createResult(port, true, 'win32', {
+    pids,
+    pid: pids[0],
+    stdout: result.stdout,
+    stderr: result.stderr
+  });
 }
 
 /**
@@ -186,7 +218,13 @@ async function killPortUnix(port, method, tree) {
   
   const result = await execAsync(killCommand);
 
-  return createResult(port, true, pids, null, process.platform, name, false, result.stdout, result.stderr);
+  return createResult(port, true, process.platform, {
+    pids,
+    pid: pids[0],
+    name,
+    stdout: result.stdout,
+    stderr: result.stderr
+  });
 }
 
 /**
@@ -198,50 +236,10 @@ function extractPidsWindows(lines) {
     const parts = line.trim().split(/\s+/);
     const pid = parts[parts.length - 1];
     if (pid && !isNaN(pid) && !pids.includes(pid)) {
-      pids.push(pid);
+      pids.push(parseInt(pid, 10));
     }
   });
   return pids;
-}
-
-/**
- * Create standardized result object
- */
-function createResult(port, killed, pids, error, platform, name, isList, stdout, stderr) {
-  const result = {
-    port: port,
-    killed: killed,
-    platform: platform || process.platform
-  };
-
-  if (pids && pids.length > 0) {
-    result.pids = pids;
-    if (pids.length === 1) {
-      result.pid = pids[0];
-    }
-  }
-
-  if (name) {
-    result.name = name;
-  }
-
-  if (error) {
-    result.error = error;
-  }
-
-  if (stdout) {
-    result.stdout = stdout;
-  }
-
-  if (stderr) {
-    result.stderr = stderr;
-  }
-
-  if (isList) {
-    result.listing = true;
-  }
-
-  return result;
 }
 
 module.exports = portClear;

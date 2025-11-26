@@ -54,19 +54,28 @@ async function testInvalidPort() {
 }
 
 /**
- * Test 2: No process on port
+ * Test 2: No process on port (should succeed now!)
  */
 async function testNoProcess() {
   console.log('\n--- Test 2: No Process on Port ---');
   
-  // Use a random high port that's unlikely to be in use
-  const unusedPort = 62345;
+  // Port 65432 is unlikely to be in use
+  const freePort = 65432;
   
   try {
-    await portClear(unusedPort);
-    assert(false, 'Should throw error when no process on port');
+    const result = await portClear(freePort);
+    
+    // New behavior: should return success when port is free
+    if (result.alreadyFree && !result.killed) {
+      console.log('✓ Correctly reports port is already free');
+      testsPassed++;
+    } else {
+      console.error('✗ Expected alreadyFree: true, killed: false');
+      testsFailed++;
+    }
   } catch (error) {
-    assert(error.message.includes('No process running'), 'Throws error when no process found');
+    console.error('✗ Should not throw error for free port:', error.message);
+    testsFailed++;
   }
 }
 

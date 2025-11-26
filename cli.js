@@ -32,6 +32,7 @@ function parseArgs(argv) {
     list: false,
     json: false,
     tree: false,
+    strict: false,
     help: false,
     from: null,
     to: null
@@ -52,6 +53,8 @@ function parseArgs(argv) {
       args.json = true;
     } else if (arg === '--tree' || arg === '--kill-tree') {
       args.tree = true;
+    } else if (arg === '--strict') {
+      args.strict = true;
     } else if (arg === '-p' || arg === '--port') {
       // Next argument is the port(s)
       i++;
@@ -159,6 +162,7 @@ ${colorize('OPTIONS:', 'yellow')}
   -q, --quiet            Quiet mode (only show errors)
   --json                 Output results as JSON
   --tree                 Kill process tree (including children)
+  --strict               Throw error if port is already free (default: treat as success)
   --from <port>          Start of port range
   --to <port>            End of port range
   -h, --help             Show this help message
@@ -231,7 +235,8 @@ async function main() {
   const options = {
     method: args.method,
     list: args.list,
-    tree: args.tree
+    tree: args.tree,
+    strict: args.strict
   };
 
   // JSON output mode
@@ -249,8 +254,9 @@ async function main() {
         
         if (!args.quiet) {
           if (args.list) {
-            if (result.error) {
-              console.log(colorize(`Port ${port}:`, 'yellow'), colorize(result.error, 'gray'));
+            if (result.error || result.message) {
+              const msg = result.error || result.message;
+              console.log(colorize(`Port ${port}:`, 'yellow'), colorize(msg, 'gray'));
             } else {
               const procInfo = result.name ? `${result.name} (PID: ${result.pid || result.pids.join(', ')})` : `PID: ${result.pid || result.pids.join(', ')}`;
               console.log(colorize(`Port ${port}:`, 'cyan'), procInfo);
@@ -263,18 +269,25 @@ async function main() {
               }
             }
           } else {
-            console.log(colorize('✓', 'green'), `Process on port ${port} killed successfully`);
-            
-            if (args.verbose) {
-              console.log(colorize(`  Platform: ${result.platform}`, 'gray'));
-              if (result.pids) {
-                console.log(colorize(`  PIDs: ${result.pids.join(', ')}`, 'gray'));
+            // Check if port was already free
+            if (result.alreadyFree) {
+              if (args.verbose) {
+                console.log(colorize('✓', 'green'), `Port ${port} is already free`);
               }
-              if (result.name) {
-                console.log(colorize(`  Process: ${result.name}`, 'gray'));
-              }
-              if (result.stdout && result.stdout.trim()) {
-                console.log(colorize(`  Output: ${result.stdout.trim()}`, 'gray'));
+            } else {
+              console.log(colorize('✓', 'green'), `Process on port ${port} killed successfully`);
+              
+              if (args.verbose) {
+                console.log(colorize(`  Platform: ${result.platform}`, 'gray'));
+                if (result.pids) {
+                  console.log(colorize(`  PIDs: ${result.pids.join(', ')}`, 'gray'));
+                }
+                if (result.name) {
+                  console.log(colorize(`  Process: ${result.name}`, 'gray'));
+                }
+                if (result.stdout && result.stdout.trim()) {
+                  console.log(colorize(`  Output: ${result.stdout.trim()}`, 'gray'));
+                }
               }
             }
           }
