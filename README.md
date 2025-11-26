@@ -3,13 +3,21 @@
 > **Enterprise-grade port management utility for modern development workflows**  
 > Zero dependencies • Cross-platform • Universal language support • Production-ready
 
+<br>
+
 [![npm version](https://img.shields.io/npm/v/portclear.svg?style=flat-square)](https://www.npmjs.com/package/portclear)
 [![npm downloads](https://img.shields.io/npm/dm/portclear.svg?style=flat-square)](https://www.npmjs.com/package/portclear)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![Package Size](https://img.shields.io/bundlephobia/min/portclear.svg?style=flat-square)](https://bundlephobia.com/package/portclear)
 [![Node Version](https://img.shields.io/node/v/portclear.svg?style=flat-square)](https://nodejs.org)
 
+<br>
+
+
 ---
+
+
+<br>
 
 ## Table of Contents
 
@@ -28,7 +36,13 @@
 - [Contributing](#contributing)
 - [License](#license)
 
+<br>
+
+
 ---
+
+
+<br>
 
 ## Overview
 
@@ -47,7 +61,9 @@
 | **Production Ready** | Battle-tested with comprehensive error handling |
 | **Minimal Footprint** | ~10 KB package size vs 60-174 KB in alternatives |
 
+
 ---
+
 
 ## Why portclear?
 
@@ -80,7 +96,9 @@
 - **Enterprise Grade**: Production-ready with robust error handling
 - **Future Proof**: Active maintenance and continuous improvements
 
+
 ---
+
 
 ## Installation
 
@@ -130,7 +148,9 @@ For convenience, **portclear** is published under multiple package names:
 
 > **Note:** All aliases provide identical functionality. Use whichever name you prefer.
 
+
 ---
+
 
 ## Quick Start
 
@@ -200,7 +220,9 @@ npx portclear 8000-8010
 </tr>
 </table>
 
+
 ---
+
 
 ## CLI Reference
 
@@ -315,7 +337,9 @@ fi
 
 </details>
 
+
 ---
+
 
 ## API Documentation
 
@@ -432,7 +456,9 @@ async function safeKill(port) {
 }
 ```
 
+
 ---
+
 
 ## Universal Language Support
 
@@ -510,7 +536,9 @@ async function safeKill(port) {
 
 This approach ensures compatibility with **any language or framework** that uses network ports.
 
+
 ---
+
 
 ## Advanced Usage
 
@@ -674,7 +702,9 @@ async function healthCheck(port) {
 }
 ```
 
+
 ---
+
 
 ## Platform Compatibility
 
@@ -700,7 +730,9 @@ async function healthCheck(port) {
 - **IPv4**: Full support
 - **IPv6**: Depends on OS implementation
 
+
 ---
+
 
 ## Performance & Benchmarks
 
@@ -734,7 +766,9 @@ Install time:     < 2 seconds
 Dependencies:     0
 ```
 
+
 ---
+
 
 ## Troubleshooting
 
@@ -848,7 +882,9 @@ portclear --json 3000 | jq '.'
 - **Issues**: [GitHub Issues](https://github.com/mreshank/portclear/issues)
 - **npm Package**: [npmjs.com/package/portclear](https://www.npmjs.com/package/portclear)
 
+
 ---
+
 
 ## Migration Guide
 
@@ -891,7 +927,9 @@ npx portclear 3000
 npx portclear -m tcp 3000  # Explicit TCP
 ```
 
+
 ---
+
 
 ## Contributing
 
@@ -935,7 +973,9 @@ node cli.js -l 3000
 node test/test.js
 ```
 
+
 ---
+
 
 ## License
 
@@ -947,7 +987,9 @@ The above copyright notice and this permission notice shall be included in all c
 
 **THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.**
 
+
 ---
+
 
 ## Acknowledgments
 
@@ -957,7 +999,9 @@ Built with care for the developer community. Special thanks to all contributors 
 **npm Package**: [npmjs.com/package/portclear](https://www.npmjs.com/package/portclear)  
 **Author**: [Eshank Tyagi](https://eshank.tech) • [GitHub](https://github.com/mreshank)
 
+
 ---
+
 
 <div align="center">
 
