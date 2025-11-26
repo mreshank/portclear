@@ -16,7 +16,7 @@
 ✅ **Port ranges** - Kill ports 3000-3010 in one command  
 ✅ **Preview mode** - List processes before killing  
 ✅ **TypeScript support** - Full type definitions included  
-✅ **Multiple aliases** - Available as `portclear`, `port-clear`, `pkill-port`, etc.  
+✅ **Multiple aliases** - Available as `portclear`, `pkill-port`, `portstop`, etc.  
 ✅ **Flexible CLI** - Positional, flag-based, and range syntax  
 ✅ **Promise-based API** - Clean programmatic usage  
 
@@ -48,7 +48,6 @@ portclear doesn't care what language your process is written in. It finds what's
 ```bash
 # Use any of these aliases:
 npx portclear <port>
-npx port-clear <port>
 npx pkill-port <port>
 npx portstop <port>
 npx port-nuke <port>
@@ -468,7 +467,6 @@ If you encounter any problems, please [open an issue](https://github.com/mreshan
 This package is available under multiple names for convenience:
 
 - [portclear](https://www.npmjs.com/package/portclear) (main)
-- [port-clear](https://www.npmjs.com/package/port-clear)
 - [pkill-port](https://www.npmjs.com/package/pkill-port)
 - [portstop](https://www.npmjs.com/package/portstop)
 - [port-nuke](https://www.npmjs.com/package/port-nuke)

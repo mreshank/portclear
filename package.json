@@ -6,8 +6,8 @@
   "types": "index.d.ts",
   "bin": {
     "portclear": "cli.js",
-    "pkill-port": "cli.js",
     "portstop": "cli.js",
+    "pkill-port": "cli.js",
     "port-nuke": "cli.js",
     "port-eject": "cli.js"
   },
@@ -20,8 +20,8 @@
     "kill",
     "process",
     "portclear",
-    "pkill-port",
     "portstop",
+    "pkill-port",
     "port-nuke",
     "port-eject",
     "kill-port",
