@@ -44,12 +44,12 @@ for (const alias of PACKAGE_ALIASES) {
     name: alias,
     repository: {
       ...originalPackage.repository,
-      url: originalPackage.repository.url.replace('port-clear', alias)
+      url: originalPackage.repository.url.replace('portkill', alias)
     },
     bugs: {
-      url: originalPackage.bugs.url.replace('port-clear', alias)
+      url: originalPackage.bugs.url.replace('portkill', alias)
     },
-    homepage: originalPackage.homepage.replace('port-clear', alias)
+    homepage: originalPackage.homepage.replace('portkill', alias)
   };
   
   fs.writeFileSync(PACKAGE_JSON_PATH, JSON.stringify(modifiedPackage, null, 2));
@@ -66,9 +66,21 @@ for (const alias of PACKAGE_ALIASES) {
 }
 
 // Restore original package.json
-fs.writeFileSync(PACKAGE_JSON_PATH, fs.readFileSync(PACKAGE_BACKUP_PATH, 'utf8'));
-fs.unlinkSync(PACKAGE_BACKUP_PATH);
-console.log('✓ Restored original package.json');
+try {
+  if (fs.existsSync(PACKAGE_BACKUP_PATH)) {
+    fs.writeFileSync(PACKAGE_JSON_PATH, fs.readFileSync(PACKAGE_BACKUP_PATH, 'utf8'));
+    fs.unlinkSync(PACKAGE_BACKUP_PATH);
+    console.log('✓ Restored original package.json');
+  } else {
+    // Backup doesn't exist, restore from original
+    fs.writeFileSync(PACKAGE_JSON_PATH, JSON.stringify(originalPackage, null, 2));
+    console.log('✓ Restored original package.json from memory');
+  }
+} catch (error) {
+  console.error('⚠️  Error restoring package.json:', error.message);
+  console.log('Please manually restore package.json to:');
+  console.log(JSON.stringify(originalPackage, null, 2));
+}
 
 console.log('\n🎉 Publishing complete!');
 console.log('\nVerify packages at:');
